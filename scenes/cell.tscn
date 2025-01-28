@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3 uid="uid://tp8qln5h7qrd"]
+
+[ext_resource type="Texture2D" uid="uid://dbnhn7oot0aaq" path="res://sprites/cell.png" id="1_b6wr2"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_d6a86"]
+size = Vector2(32, 32)
+
+[node name="Cell" type="Area2D"]
+metadata/_edit_group_ = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(16, 16)
+shape = SubResource("RectangleShape2D_d6a86")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_b6wr2")
+centered = false

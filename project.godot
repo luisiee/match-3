@@ -11,9 +11,23 @@ config_version=5
 [application]
 
 config/name="Match 3"
-config/features=PackedStringArray("4.3", "Forward Plus")
+run/main_scene="res://scenes/level_0.tscn"
+config/features=PackedStringArray("4.3", "C#", "Forward Plus")
 config/icon="res://icon.svg"
+
+[display]
+
+window/size/viewport_width=640
+window/size/viewport_height=360
+window/stretch/mode="canvas_items"
 
 [dotnet]
 
 project/assembly_name="Match 3"
+
+[rendering]
+
+textures/canvas_textures/default_texture_filter=0
+textures/size/mode=0
+textures/size/viewport_height=360
+textures/size/viewport_width=640
