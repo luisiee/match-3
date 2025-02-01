@@ -1,0 +1,68 @@
+[gd_scene load_steps=9 format=4 uid="uid://c8fqp5q0wuhfv"]
+
+[ext_resource type="Script" path="res://scripts/Level.cs" id="1_n47kk"]
+[ext_resource type="Script" path="res://scripts/BackgroundArea.cs" id="1_v2m78"]
+[ext_resource type="Script" path="res://scripts/Map.cs" id="2_0wx80"]
+[ext_resource type="TileSet" uid="uid://c2umovkf1f3k5" path="res://sprites/cell_tileset.tres" id="3_kcpql"]
+[ext_resource type="TileSet" uid="uid://b8ky5tftrkxco" path="res://sprites/item_tileset.tres" id="4_hlwga"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_55leo"]
+size = Vector2(64, 360)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_qhn3w"]
+size = Vector2(512, 64)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_7ixxs"]
+size = Vector2(512, 40)
+
+[node name="Level" type="Node"]
+script = ExtResource("1_n47kk")
+
+[node name="Background" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.129412, 0.14902, 0.180392, 1)
+
+[node name="BackgroundArea" type="Area2D" parent="."]
+collision_mask = 0
+script = ExtResource("1_v2m78")
+metadata/_edit_group_ = true
+
+[node name="Collision" type="CollisionShape2D" parent="BackgroundArea"]
+position = Vector2(32, 180)
+shape = SubResource("RectangleShape2D_55leo")
+debug_color = Color(0, 0.6, 0.701961, 0.0196078)
+
+[node name="Collision2" type="CollisionShape2D" parent="BackgroundArea"]
+position = Vector2(608, 180)
+shape = SubResource("RectangleShape2D_55leo")
+debug_color = Color(0, 0.6, 0.701961, 0.0196078)
+
+[node name="Collision3" type="CollisionShape2D" parent="BackgroundArea"]
+position = Vector2(320, 32)
+shape = SubResource("RectangleShape2D_qhn3w")
+debug_color = Color(0, 0.6, 0.701961, 0.0196078)
+
+[node name="Collision4" type="CollisionShape2D" parent="BackgroundArea"]
+position = Vector2(320, 340)
+shape = SubResource("RectangleShape2D_7ixxs")
+debug_color = Color(0, 0.6, 0.701961, 0.0196078)
+
+[node name="Map" type="Node2D" parent="."]
+position = Vector2(64, 64)
+script = ExtResource("2_0wx80")
+metadata/_edit_group_ = true
+
+[node name="CellLayer" type="TileMapLayer" parent="Map"]
+tile_map_data = PackedByteArray("AAAGAAIAAAACAAAAAAAGAAMAAAABAAAAAAAGAAQAAAABAAAAAAAHAAIAAAACAAAAAAAHAAMAAAABAAAAAAAHAAQAAAABAAAAAAAIAAIAAAACAAAAAAAIAAMAAAABAAAAAAAIAAQAAAABAAAAAAAJAAIAAAACAAAAAAAJAAMAAAABAAAAAAAJAAQAAAABAAAAAAAGAAUAAAABAAAAAAAHAAUAAAABAAAAAAAIAAUAAAABAAAAAAAJAAUAAAABAAAAAAA=")
+tile_set = ExtResource("3_kcpql")
+
+[node name="ItemLayer" type="TileMapLayer" parent="Map"]
+tile_map_data = PackedByteArray("AAAGAAIAAAABAAAAAAAGAAMAAAACAAAAAAAGAAQAAAABAAAAAAAHAAIAAAABAAAAAAAHAAMAAAACAAAAAAAHAAQAAAADAAAAAAAIAAIAAAACAAAAAAAIAAMAAAABAAAAAAAIAAQAAAABAAAAAAAJAAIAAAACAAAAAAAJAAMAAAADAAAAAAAJAAQAAAABAAAAAAAGAAUAAAADAAAAAAAHAAUAAAABAAAAAAAIAAUAAAACAAAAAAAJAAUAAAADAAAAAAA=")
+tile_set = ExtResource("4_hlwga")
+
+[connection signal="input_event" from="BackgroundArea" to="BackgroundArea" method="OnInputEvent"]
