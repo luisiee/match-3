@@ -29,7 +29,7 @@ public partial class Item : Node2D
         Map map = GetParent<Map>();
         Image atlasImage = map.ItemAtlas.Texture.GetImage();
 
-        Rect2I textureRegion = new(Map.TEXTURE_SIZE * map.ITEM_TYPE_TO_ATLAS_COORDS[Type], Map.TEXTURE_SIZE * Vector2I.One);
+        Rect2I textureRegion = new(Map.TEXTURE_SIZE * map.GetItemAtlasCoords(Type), Map.TEXTURE_SIZE * Vector2I.One);
         Rect2I highlightedTextureRegion = new(textureRegion.Position + 128 * Vector2I.Down, textureRegion.Size);
 
         texture = ImageTexture.CreateFromImage(atlasImage.GetRegion(textureRegion));

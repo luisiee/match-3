@@ -6,24 +6,50 @@ public partial class Level : Node
 {
     private Map map;
     private BackgroundArea backgroundArea;
+    private UI ui;
 
     private bool isInteractable;
     private Cell selectedCell;
 
-    private readonly ItemType[] ITEM_TYPES = { ItemType.COPPER, ItemType.IRON, ItemType.DIAMOND, ItemType.AMETHYST };
+    private int _moves;
+    private int _score;
+
+    private int Moves
+    {
+        get { return _moves; }
+        set
+        {
+            _moves = value;
+            ui.MovesLabel.Text = _moves.ToString();
+        }
+    }
+
+    private int Score
+    {
+        get { return _score; }
+        set
+        {
+            _score = value;
+            ui.ScoreLabel.Text = _score.ToString();
+        }
+    }
+
+    private const int SCORE_INC = 100;
+
+    // @Incomplete: Hardcoded for now
+    private ItemType[] spawnableItemTypes = { ItemType.COPPER, ItemType.IRON, ItemType.DIAMOND, ItemType.AMETHYST };
+    private Objective[] objectives = { new ScoreObjective(500000) };
 
     private readonly struct AnimationInfo
     {
         public readonly AnimationPlayer player;
         public readonly string name;
-        public readonly int index;  // @Unused
         public readonly float speed;
 
-        public AnimationInfo(AnimationPlayer player, string name, int index = 0, float speed = 1)
+        public AnimationInfo(AnimationPlayer player, string name, float speed = 1)
         {
             this.player = player;
             this.name = name;
-            this.index = index;
             this.speed = speed;
         }
     }
@@ -39,15 +65,21 @@ public partial class Level : Node
     {
         map = GetNode<Map>("Map");
         backgroundArea = GetNode<BackgroundArea>("BackgroundArea");
+        ui = GetNode<UI>("UI");
 
         map.Init();
         backgroundArea.Init();
+        ui.Init();
 
         Start();
     }
 
     private async void Start()
     {
+        // @Incomplete: Hardcoded for now
+        Moves = 15;
+        Score = 0;
+
         foreach (Cell cell in map.Cells)
         {
             if (cell.Item.Type == ItemType.NONE) continue;
@@ -101,8 +133,13 @@ public partial class Level : Node
             return;
         }
 
+        Moves--;
         await TryMatchGenerateCycle();
-        isInteractable = true;
+
+        if (Moves > 0)
+        {
+            isInteractable = true;
+        }
     }
 
     public async void OnBackgroundAreaSelected()
@@ -213,13 +250,13 @@ public partial class Level : Node
     // The animations in the buffer must be played
     private void TechnicalSpawn(Cell cell)
     {
-        if (cell.Type < CellType.GENERATOR_TOP || cell.Type > CellType.GENERATOR_CENTER)
+        if ((int)cell.Type < Cell.TYPE_GEN_MIN || (int)cell.Type > Cell.TYPE_GEN_MAX)
         {
             GD.PushError("[Level]: Tried to spawn item in invalid cell. Mapcoords: ", cell.MapCoords);
             return;
         }
 
-        map.SetItem(cell, ITEM_TYPES[GD.Randi() % ITEM_TYPES.Length], false);
+        map.SetItem(cell, spawnableItemTypes[GD.Randi() % spawnableItemTypes.Length], false);
         cell.Item.Sprite.Scale = Vector2.Zero;
         cell.Item.Visible = true;
         animationBuffer.Add(new(cell.Item.AnimationPlayer, "item/spawn"));
@@ -356,9 +393,9 @@ public partial class Level : Node
         bool success = false;
         map.CalculateMatches();
 
-        for (int y = 0; y < Map.HEIGHT - 2; y++)
+        for (int y = 0; y < Map.HEIGHT; y++)
         {
-            for (int x = 0; x < Map.WIDTH - 2; x++)
+            for (int x = 0; x < Map.WIDTH; x++)
             {
                 if (map.Matches[y, x] == MatchType.NONE) continue;
 
@@ -372,15 +409,19 @@ public partial class Level : Node
                 // @Temporary
                 // Write animations to buffer
                 // await PlayBufferAnimations();
+                // Different scores
+                // Special items
 
                 if ((map.Matches[y, x] & MatchType.RIGHT) == MatchType.RIGHT)
                 {
+                    Score += SCORE_INC;
                     map.SetItem(new Vector2I(x + 0, y), ItemType.NONE);
                     map.SetItem(new Vector2I(x + 1, y), ItemType.NONE);
                     map.SetItem(new Vector2I(x + 2, y), ItemType.NONE);
                 }
                 if ((map.Matches[y, x] & MatchType.DOWN) == MatchType.DOWN)
                 {
+                    Score += SCORE_INC;
                     map.SetItem(new Vector2I(x, y + 0), ItemType.NONE);
                     map.SetItem(new Vector2I(x, y + 1), ItemType.NONE);
                     map.SetItem(new Vector2I(x, y + 2), ItemType.NONE);

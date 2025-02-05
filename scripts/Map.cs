@@ -7,7 +7,7 @@ using System.Linq;
 public partial class Map : Node2D
 {
     public const int HEIGHT = 10;
-    public const int WIDTH = 14;
+    public const int WIDTH = 12;
 
     public Cell[,] Cells { get; private set; } = new Cell[HEIGHT, WIDTH];
 
@@ -15,9 +15,12 @@ public partial class Map : Node2D
     public List<GeneratorVector> VerticalVectors { get; private set; } = new();
     public List<GeneratorVector> HorizontalVectors { get; private set; } = new();
 
-    public MatchType[,] Matches { get; private set; } = new MatchType[HEIGHT - 2, WIDTH - 2];
+    public MatchType[,] Matches { get; private set; } = new MatchType[HEIGHT, WIDTH];
 
     public const int TEXTURE_SIZE = 32;
+    public const int CELL_ATLAS_SIZE = 8;
+    public const int ITEM_ATLAS_SIZE = 8;
+
     public TileSetAtlasSource CellAtlas { get; private set; }
     public TileSetAtlasSource ItemAtlas { get; private set; }
 
@@ -26,15 +29,16 @@ public partial class Map : Node2D
 
     private Level level;
 
+    // @Incomplete: migrate to function and arrays
     public readonly Dictionary<CellType, Vector2I> CELL_TYPE_TO_ATLAS_COORDS = new()
     {
         { CellType.NONE,                new Vector2I(0, 0) },
         { CellType.NORMAL,              new Vector2I(1, 0) },
-        { CellType.GENERATOR_TOP,       new Vector2I(2, 0) },
-        { CellType.GENERATOR_LEFT,      new Vector2I(3, 0) },
-        { CellType.GENERATOR_BOTTOM,    new Vector2I(4, 0) },
-        { CellType.GENERATOR_RIGHT,     new Vector2I(5, 0) },
-        { CellType.GENERATOR_CENTER,    new Vector2I(6, 0) },
+        { CellType.GENERATOR_CENTER,    new Vector2I(2, 0) },
+        { CellType.GENERATOR_TOP,       new Vector2I(3, 0) },
+        { CellType.GENERATOR_LEFT,      new Vector2I(4, 0) },
+        { CellType.GENERATOR_BOTTOM,    new Vector2I(5, 0) },
+        { CellType.GENERATOR_RIGHT,     new Vector2I(6, 0) },
     };
 
     public readonly Dictionary<ItemType, Vector2I> ITEM_TYPE_TO_ATLAS_COORDS = new()
@@ -44,6 +48,31 @@ public partial class Map : Node2D
         { ItemType.IRON,        new Vector2I(2, 0) },
         { ItemType.DIAMOND,     new Vector2I(3, 0) },
         { ItemType.AMETHYST,    new Vector2I(4, 0) },
+    };
+
+    private readonly CellType[] CELL_ATLAS_INFO =
+    {
+        CellType.NONE,
+        CellType.NORMAL,
+
+        CellType.GENERATOR_CENTER,
+        CellType.GENERATOR_TOP,
+        CellType.GENERATOR_LEFT,
+        CellType.GENERATOR_BOTTOM,
+        CellType.GENERATOR_RIGHT,
+        CellType.GENERATOR_TOP_RIGHT,
+        CellType.GENERATOR_TOP_LEFT,
+        CellType.GENERATOR_BOTTOM_LEFT,
+        CellType.GENERATOR_BOTTOM_RIGHT,
+    };
+
+    private readonly ItemType[] ITEM_ATLAS_INFO =
+    {
+        ItemType.NONE,
+        ItemType.COPPER,
+        ItemType.IRON,
+        ItemType.DIAMOND,
+        ItemType.AMETHYST,
     };
 
     public void Init()
@@ -102,6 +131,34 @@ public partial class Map : Node2D
     private static Vector2 MapToLocal(Vector2I mapCoords)
     {
         return TEXTURE_SIZE * ((Vector2)mapCoords + Vector2.One / 2);
+    }
+
+    public Vector2I GetCellAtlasCoords(CellType type)
+    {
+        int row = -1;
+        for (int col = 0; col < CELL_ATLAS_INFO.Length; col++)
+        {
+            if (col % CELL_ATLAS_SIZE == 0) row++;
+            if (CELL_ATLAS_INFO[col] == type)
+            {
+                return new(col % CELL_ATLAS_SIZE, row);
+            }
+        }
+        return -Vector2I.One;
+    }
+
+    public Vector2I GetItemAtlasCoords(ItemType type)
+    {
+        int row = -1;
+        for (int col = 0; col < ITEM_ATLAS_INFO.Length; col++)
+        {
+            if (col % ITEM_ATLAS_SIZE == 0) row++;
+            if (ITEM_ATLAS_INFO[col] == type)
+            {
+                return new(col % ITEM_ATLAS_SIZE, row);
+            }
+        }
+        return -Vector2I.One;
     }
 
     public static bool InBounds(Vector2I mapCoords)
@@ -180,11 +237,12 @@ public partial class Map : Node2D
         item.Init();
     }
 
+    // @Incomplete: Add support for corner generators
     private void LoadGenerators()
     {
         foreach (Cell cell in Cells)
         {
-            if (cell.Type < CellType.GENERATOR_TOP || cell.Type > CellType.GENERATOR_CENTER)
+            if ((int)cell.Type < Cell.TYPE_GEN_MIN || (int)cell.Type > Cell.TYPE_GEN_MAX)
             {
                 continue;
             }
@@ -246,20 +304,20 @@ public partial class Map : Node2D
     // NOTE: We calculate the matches just before checking
     public void CalculateMatches()
     {
-        for (int y = 0; y < HEIGHT - 2; y++)
+        for (int y = 0; y < HEIGHT; y++)
         {
-            for (int x = 0; x < WIDTH - 2; x++)
+            for (int x = 0; x < WIDTH; x++)
             {
                 Matches[y, x] = MatchType.NONE;
 
                 // Cell type NONE => item type NONE
                 if (Cells[y, x].Item.Type == ItemType.NONE) continue;
 
-                if (Cells[y, x].Item.Type == Cells[y, x + 1].Item.Type && Cells[y, x].Item.Type == Cells[y, x + 2].Item.Type)
+                if (x < WIDTH - 2 && Cells[y, x].Item.Type == Cells[y, x + 1].Item.Type && Cells[y, x].Item.Type == Cells[y, x + 2].Item.Type)
                 {
                     Matches[y, x] |= MatchType.RIGHT;
                 }
-                if (Cells[y, x].Item.Type == Cells[y + 1, x].Item.Type && Cells[y, x].Item.Type == Cells[y + 2, x].Item.Type)
+                if (y < HEIGHT - 2 && Cells[y, x].Item.Type == Cells[y + 1, x].Item.Type && Cells[y, x].Item.Type == Cells[y + 2, x].Item.Type)
                 {
                     Matches[y, x] |= MatchType.DOWN;
                 }

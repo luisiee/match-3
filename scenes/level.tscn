@@ -1,13 +1,18 @@
-[gd_scene load_steps=9 format=4 uid="uid://c8fqp5q0wuhfv"]
+[gd_scene load_steps=12 format=4 uid="uid://c8fqp5q0wuhfv"]
 
 [ext_resource type="Script" path="res://scripts/Level.cs" id="1_n47kk"]
 [ext_resource type="Script" path="res://scripts/BackgroundArea.cs" id="1_v2m78"]
 [ext_resource type="Script" path="res://scripts/Map.cs" id="2_0wx80"]
 [ext_resource type="TileSet" uid="uid://c2umovkf1f3k5" path="res://sprites/cell_tileset.tres" id="3_kcpql"]
 [ext_resource type="TileSet" uid="uid://b8ky5tftrkxco" path="res://sprites/item_tileset.tres" id="4_hlwga"]
+[ext_resource type="Script" path="res://scripts/UI.cs" id="6_bnh5i"]
+[ext_resource type="FontFile" uid="uid://ds5gkvjg3vvw1" path="res://fonts/editundo.ttf" id="6_ns4kq"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_55leo"]
-size = Vector2(96, 360)
+size = Vector2(32, 360)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_818tn"]
+size = Vector2(224, 360)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_qhn3w"]
 size = Vector2(448, 32)
@@ -34,36 +39,133 @@ script = ExtResource("1_v2m78")
 metadata/_edit_group_ = true
 
 [node name="Collision" type="CollisionShape2D" parent="BackgroundArea"]
-position = Vector2(64, 180)
+position = Vector2(32, 180)
 shape = SubResource("RectangleShape2D_55leo")
 debug_color = Color(0, 0.6, 0.701961, 0.0196078)
 
 [node name="Collision2" type="CollisionShape2D" parent="BackgroundArea"]
-position = Vector2(608, 180)
-shape = SubResource("RectangleShape2D_55leo")
+position = Vector2(544, 180)
+shape = SubResource("RectangleShape2D_818tn")
 debug_color = Color(0, 0.6, 0.701961, 0.0196078)
 
 [node name="Collision3" type="CollisionShape2D" parent="BackgroundArea"]
-position = Vector2(336, 16)
+position = Vector2(272, 16)
 shape = SubResource("RectangleShape2D_qhn3w")
 debug_color = Color(0, 0.6, 0.701961, 0.0196078)
 
 [node name="Collision4" type="CollisionShape2D" parent="BackgroundArea"]
-position = Vector2(336, 356)
+position = Vector2(272, 356)
 shape = SubResource("RectangleShape2D_7ixxs")
 debug_color = Color(0, 0.6, 0.701961, 0.0196078)
 
 [node name="Map" type="Node2D" parent="."]
-position = Vector2(96, 32)
+position = Vector2(32, 32)
 script = ExtResource("2_0wx80")
 metadata/_edit_group_ = true
 
 [node name="CellLayer" type="TileMapLayer" parent="Map"]
-tile_map_data = PackedByteArray("AAAGAAMAAAABAAAAAAAGAAQAAAABAAAAAAAGAAUAAAABAAAAAAAHAAMAAAACAAAAAAAHAAQAAAABAAAAAAAHAAUAAAABAAAAAAAIAAMAAAACAAAAAAAIAAQAAAABAAAAAAAIAAUAAAABAAAAAAAFAAMAAAADAAAAAAAFAAQAAAADAAAAAAAFAAUAAAADAAAAAAAFAAYAAAADAAAAAAAGAAYAAAABAAAAAAAHAAYAAAABAAAAAAAIAAYAAAABAAAAAAA=")
+tile_map_data = PackedByteArray("AAADAAEAAAADAAAAAAADAAIAAAABAAAAAAADAAMAAAABAAAAAAADAAQAAAABAAAAAAADAAUAAAABAAAAAAADAAYAAAABAAAAAAADAAcAAAABAAAAAAADAAgAAAAFAAAAAAAEAAEAAAADAAAAAAAEAAIAAAABAAAAAAAEAAMAAAABAAAAAAAEAAQAAAABAAAAAAAEAAUAAAABAAAAAAAEAAYAAAABAAAAAAAEAAcAAAABAAAAAAAEAAgAAAAFAAAAAAAFAAEAAAADAAAAAAAFAAIAAAABAAAAAAAFAAMAAAABAAAAAAAFAAYAAAABAAAAAAAFAAcAAAABAAAAAAAFAAgAAAAFAAAAAAAGAAEAAAADAAAAAAAGAAIAAAABAAAAAAAGAAMAAAABAAAAAAAGAAYAAAABAAAAAAAGAAcAAAABAAAAAAAGAAgAAAAFAAAAAAAHAAEAAAADAAAAAAAHAAIAAAABAAAAAAAHAAMAAAABAAAAAAAHAAYAAAABAAAAAAAHAAcAAAABAAAAAAAHAAgAAAAFAAAAAAAIAAEAAAADAAAAAAAIAAIAAAABAAAAAAAIAAMAAAABAAAAAAAIAAQAAAABAAAAAAAIAAUAAAABAAAAAAAIAAYAAAABAAAAAAAIAAcAAAABAAAAAAAIAAgAAAAFAAAAAAAJAAEAAAADAAAAAAAJAAIAAAABAAAAAAAJAAMAAAABAAAAAAAJAAQAAAABAAAAAAAJAAUAAAABAAAAAAAJAAYAAAABAAAAAAAJAAcAAAABAAAAAAAJAAgAAAAFAAAAAAACAAEAAAADAAAAAAACAAIAAAABAAAAAAACAAMAAAABAAAAAAACAAQAAAABAAAAAAACAAUAAAABAAAAAAACAAYAAAABAAAAAAACAAcAAAABAAAAAAACAAgAAAAFAAAAAAAHAAQAAAABAAAAAAAHAAUAAAABAAAAAAA=")
 tile_set = ExtResource("3_kcpql")
 
 [node name="ItemLayer" type="TileMapLayer" parent="Map"]
-tile_map_data = PackedByteArray("AAAGAAQAAAAEAAAAAAAGAAUAAAADAAAAAAAHAAMAAAACAAAAAAAHAAUAAAABAAAAAAAIAAMAAAACAAAAAAAIAAQAAAADAAAAAAAIAAUAAAAEAAAAAAAFAAMAAAABAAAAAAAFAAQAAAACAAAAAAAFAAUAAAABAAAAAAAFAAYAAAADAAAAAAAGAAYAAAABAAAAAAAHAAYAAAAEAAAAAAAIAAYAAAADAAAAAAAGAAMAAAAEAAAAAAAHAAQAAAAEAAAAAAA=")
+tile_map_data = PackedByteArray("AAADAAEAAAAEAAAAAAADAAIAAAACAAAAAAADAAMAAAADAAAAAAADAAQAAAABAAAAAAADAAUAAAABAAAAAAADAAYAAAADAAAAAAADAAcAAAACAAAAAAADAAgAAAABAAAAAAAEAAEAAAADAAAAAAAEAAIAAAAEAAAAAAAEAAMAAAACAAAAAAAEAAQAAAADAAAAAAAEAAUAAAADAAAAAAAEAAYAAAACAAAAAAAEAAcAAAABAAAAAAAEAAgAAAAEAAAAAAAFAAEAAAABAAAAAAAFAAIAAAADAAAAAAAFAAMAAAAEAAAAAAAFAAYAAAABAAAAAAAFAAcAAAAEAAAAAAAFAAgAAAADAAAAAAAGAAEAAAABAAAAAAAGAAIAAAADAAAAAAAGAAMAAAAEAAAAAAAGAAYAAAABAAAAAAAGAAcAAAAEAAAAAAAGAAgAAAADAAAAAAAHAAEAAAADAAAAAAAHAAIAAAAEAAAAAAAHAAMAAAACAAAAAAAHAAYAAAACAAAAAAAHAAcAAAABAAAAAAAHAAgAAAAEAAAAAAAIAAEAAAAEAAAAAAAIAAIAAAACAAAAAAAIAAMAAAADAAAAAAAIAAQAAAABAAAAAAAIAAUAAAABAAAAAAAIAAYAAAADAAAAAAAIAAcAAAACAAAAAAAIAAgAAAABAAAAAAAJAAEAAAACAAAAAAAJAAIAAAADAAAAAAAJAAMAAAABAAAAAAAJAAQAAAAEAAAAAAAJAAUAAAAEAAAAAAAJAAYAAAABAAAAAAAJAAcAAAADAAAAAAAJAAgAAAACAAAAAAACAAEAAAACAAAAAAACAAIAAAADAAAAAAACAAMAAAABAAAAAAACAAQAAAAEAAAAAAACAAUAAAAEAAAAAAACAAYAAAABAAAAAAACAAcAAAADAAAAAAACAAgAAAACAAAAAAAHAAQAAAADAAAAAAAHAAUAAAADAAAAAAA=")
 tile_set = ExtResource("4_hlwga")
+
+[node name="UI" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 480.0
+offset_right = 640.0
+offset_bottom = 360.0
+script = ExtResource("6_bnh5i")
+
+[node name="VSeparator" type="VSeparator" parent="UI"]
+layout_mode = 0
+offset_left = -36.0
+offset_top = 32.0
+offset_right = -32.0
+offset_bottom = 328.0
+
+[node name="MovesLabel" type="Label" parent="UI"]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -116.0
+offset_right = 128.0
+offset_bottom = -84.0
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 0.392157, 1)
+theme_override_fonts/font = ExtResource("6_ns4kq")
+theme_override_font_sizes/font_size = 32
+text = "15
+"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MovesTextLabel" type="Label" parent="UI"]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -148.0
+offset_right = 128.0
+offset_bottom = -116.0
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("6_ns4kq")
+theme_override_font_sizes/font_size = 32
+text = "MOVES"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ScoreTextLabel" type="Label" parent="UI"]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -52.0
+offset_right = 128.0
+offset_bottom = -20.0
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("6_ns4kq")
+theme_override_font_sizes/font_size = 32
+text = "SCORE
+"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ScoreLabel" type="Label" parent="UI"]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -20.0
+offset_right = 128.0
+offset_bottom = 12.0
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 0.392157, 1)
+theme_override_fonts/font = ExtResource("6_ns4kq")
+theme_override_font_sizes/font_size = 32
+text = "402536
+"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ObjectivesTextLabel" type="Label" parent="UI"]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = -16.0
+offset_top = 44.0
+offset_right = 145.0
+offset_bottom = 76.0
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("6_ns4kq")
+theme_override_font_sizes/font_size = 32
+text = "OBJECTIVES
+"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [connection signal="input_event" from="BackgroundArea" to="BackgroundArea" method="OnInputEvent"]
