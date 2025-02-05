@@ -2,4 +2,9 @@
 .godot/
 /android/
 
+# Custom ignores
 .vscode/
+
+*.kra
+*.kra~
+*.png~

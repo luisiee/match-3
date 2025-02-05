@@ -10,8 +10,9 @@ public partial class Cell : Node2D
 
     public void Init()
     {
-        Image atlasImage = Map.CellAtlas.Texture.GetImage();
-        Rect2I textureRegion = new(Map.TEXTURE_SIZE * Map.CELL_TYPE_TO_ATLAS_COORDS[Type], Map.TEXTURE_SIZE * Vector2I.One);
+        Map map = GetParent<Map>();
+        Image atlasImage = map.CellAtlas.Texture.GetImage();
+        Rect2I textureRegion = new(Map.TEXTURE_SIZE * map.CELL_TYPE_TO_ATLAS_COORDS[Type], Map.TEXTURE_SIZE * Vector2I.One);
         ImageTexture texture = ImageTexture.CreateFromImage(atlasImage.GetRegion(textureRegion));
         GetNode<Sprite2D>("Sprite2D").Texture = texture;
     }
@@ -21,4 +22,15 @@ public partial class Cell : Node2D
         if (!inputEvent.IsActionReleased("left_click")) return;
         EmitSignal(SignalName.Selected, this);
     }
+}
+
+public enum CellType
+{
+    NONE,
+    NORMAL,
+    GENERATOR_TOP,
+    GENERATOR_LEFT,
+    GENERATOR_BOTTOM,
+    GENERATOR_RIGHT,
+    GENERATOR_CENTER,
 }

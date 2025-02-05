@@ -26,9 +26,10 @@ public partial class Item : Node2D
 
     public void Init()
     {
-        Image atlasImage = Map.ItemAtlas.Texture.GetImage();
+        Map map = GetParent<Map>();
+        Image atlasImage = map.ItemAtlas.Texture.GetImage();
 
-        Rect2I textureRegion = new(Map.TEXTURE_SIZE * Map.ITEM_TYPE_TO_ATLAS_COORDS[Type], Map.TEXTURE_SIZE * Vector2I.One);
+        Rect2I textureRegion = new(Map.TEXTURE_SIZE * map.ITEM_TYPE_TO_ATLAS_COORDS[Type], Map.TEXTURE_SIZE * Vector2I.One);
         Rect2I highlightedTextureRegion = new(textureRegion.Position + 128 * Vector2I.Down, textureRegion.Size);
 
         texture = ImageTexture.CreateFromImage(atlasImage.GetRegion(textureRegion));
@@ -38,4 +39,13 @@ public partial class Item : Node2D
         Sprite.Texture = texture;
         AnimationPlayer = Sprite.GetNode<AnimationPlayer>("AnimationPlayer");
     }
+}
+
+public enum ItemType
+{
+    NONE,
+    COPPER,
+    IRON,
+    DIAMOND,
+    AMETHYST,
 }

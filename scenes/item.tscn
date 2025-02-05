@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://dg0wbirg8scah"]
+[gd_scene load_steps=15 format=3 uid="uid://dg0wbirg8scah"]
 
 [ext_resource type="Script" path="res://scripts/Item.cs" id="1_48by5"]
 [ext_resource type="Texture2D" uid="uid://b1jkalv1evom5" path="res://sprites/default.png" id="2_dl8ea"]
@@ -44,6 +44,23 @@ tracks/2/keys = {
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_tujfm"]
 _data = {
 "RESET": SubResource("Animation_hrhhu")
+}
+
+[sub_resource type="Animation" id="Animation_ugu0n"]
+resource_name = "grow"
+length = 0.08
+step = 0.02
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:scale")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.08),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(1, 1), Vector2(1.1, 1.1)]
 }
 
 [sub_resource type="Animation" id="Animation_7jxan"]
@@ -130,9 +147,9 @@ tracks/0/keys = {
 "values": [Vector2(0, 0), Vector2(0, -32)]
 }
 
-[sub_resource type="Animation" id="Animation_ugu0n"]
-resource_name = "grow"
-length = 0.08
+[sub_resource type="Animation" id="Animation_ybnxn"]
+resource_name = "select"
+length = 0.16
 step = 0.02
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -141,10 +158,10 @@ tracks/0/path = NodePath(".:scale")
 tracks/0/interp = 2
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.08),
-"transitions": PackedFloat32Array(1, 1),
+"times": PackedFloat32Array(0, 0.08, 0.16),
+"transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
-"values": [Vector2(1, 1), Vector2(1.1, 1.1)]
+"values": [Vector2(1, 1), Vector2(1.1, 1.1), Vector2(1, 1)]
 }
 
 [sub_resource type="Animation" id="Animation_v71ma"]
@@ -166,7 +183,7 @@ tracks/0/keys = {
 
 [sub_resource type="Animation" id="Animation_npp63"]
 resource_name = "spawn"
-length = 0.16
+length = 0.24
 step = 0.02
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -175,7 +192,7 @@ tracks/0/path = NodePath(".:scale")
 tracks/0/interp = 2
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.16),
+"times": PackedFloat32Array(0, 0.24),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
 "values": [Vector2(0, 0), Vector2(1, 1)]
@@ -189,6 +206,7 @@ _data = {
 "move_left": SubResource("Animation_kj7b3"),
 "move_right": SubResource("Animation_duhyp"),
 "move_up": SubResource("Animation_qiodm"),
+"select": SubResource("Animation_ybnxn"),
 "shrink": SubResource("Animation_v71ma"),
 "spawn": SubResource("Animation_npp63")
 }

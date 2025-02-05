@@ -1,39 +1,55 @@
 using Godot;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
 public partial class Map : Node2D
 {
-    public const int HEIGHT = 8;
-    public const int WIDTH = 16;
+    public const int HEIGHT = 10;
+    public const int WIDTH = 14;
 
     public Cell[,] Cells { get; private set; } = new Cell[HEIGHT, WIDTH];
 
+    public List<Cell> CenterGenerators { get; private set; } = new();
+    public List<GeneratorVector> VerticalVectors { get; private set; } = new();
+    public List<GeneratorVector> HorizontalVectors { get; private set; } = new();
+
+    public MatchType[,] Matches { get; private set; } = new MatchType[HEIGHT - 2, WIDTH - 2];
+
     public const int TEXTURE_SIZE = 32;
-    public static TileSetAtlasSource CellAtlas { get; private set; }
-    public static TileSetAtlasSource ItemAtlas { get; private set; }
+    public TileSetAtlasSource CellAtlas { get; private set; }
+    public TileSetAtlasSource ItemAtlas { get; private set; }
 
-    private static PackedScene cellScene;
-    private static PackedScene itemScene;
+    private PackedScene cellScene;
+    private PackedScene itemScene;
 
-    public static readonly Dictionary<CellType, Vector2I> CELL_TYPE_TO_ATLAS_COORDS = new()
+    private Level level;
+
+    public readonly Dictionary<CellType, Vector2I> CELL_TYPE_TO_ATLAS_COORDS = new()
     {
-        { CellType.NONE,            new Vector2I(0, 0) },
-        { CellType.NORMAL,          new Vector2I(1, 0) },
-        { CellType.GENERATOR_TOP,   new Vector2I(2, 0) },
+        { CellType.NONE,                new Vector2I(0, 0) },
+        { CellType.NORMAL,              new Vector2I(1, 0) },
+        { CellType.GENERATOR_TOP,       new Vector2I(2, 0) },
+        { CellType.GENERATOR_LEFT,      new Vector2I(3, 0) },
+        { CellType.GENERATOR_BOTTOM,    new Vector2I(4, 0) },
+        { CellType.GENERATOR_RIGHT,     new Vector2I(5, 0) },
+        { CellType.GENERATOR_CENTER,    new Vector2I(6, 0) },
     };
 
-    public static readonly Dictionary<ItemType, Vector2I> ITEM_TYPE_TO_ATLAS_COORDS = new()
+    public readonly Dictionary<ItemType, Vector2I> ITEM_TYPE_TO_ATLAS_COORDS = new()
     {
-        { ItemType.NONE,            new Vector2I(0, 0) },
-        { ItemType.COPPER,          new Vector2I(1, 0) },
-        { ItemType.IRON,            new Vector2I(2, 0) },
-        { ItemType.DIAMOND,         new Vector2I(3, 0) },
+        { ItemType.NONE,        new Vector2I(0, 0) },
+        { ItemType.COPPER,      new Vector2I(1, 0) },
+        { ItemType.IRON,        new Vector2I(2, 0) },
+        { ItemType.DIAMOND,     new Vector2I(3, 0) },
+        { ItemType.AMETHYST,    new Vector2I(4, 0) },
     };
 
     public void Init()
     {
+        level = GetParent<Level>();
+
         // @Temporary, in the future maps will be directely loaded into the Cells array
         TileSet cellTileSet = GD.Load<TileSet>("res://sprites/cell_tileset.tres");
         TileSet itemTileSet = GD.Load<TileSet>("res://sprites/item_tileset.tres");
@@ -79,6 +95,8 @@ public partial class Map : Node2D
 
         cellLayer.QueueFree();
         itemLayer.QueueFree();
+
+        LoadGenerators();
     }
 
     private static Vector2 MapToLocal(Vector2I mapCoords)
@@ -86,31 +104,228 @@ public partial class Map : Node2D
         return TEXTURE_SIZE * ((Vector2)mapCoords + Vector2.One / 2);
     }
 
-    // @Incomplete: Add boundary checks
-    public void SetCell(Vector2I mapCoords, CellType cellType = CellType.NONE)
+    public static bool InBounds(Vector2I mapCoords)
     {
+        return mapCoords.X >= 0 || mapCoords.X < WIDTH || mapCoords.Y >= 0 || mapCoords.Y < HEIGHT;
+    }
+
+    public void SetCell(Vector2I mapCoords, CellType type = CellType.NONE)
+    {
+        if (mapCoords.X < 0 || mapCoords.X >= WIDTH || mapCoords.Y < 0 || mapCoords.Y >= HEIGHT)
+        {
+            GD.PrintErr("[Map]: Tried to set cell at invalid coords.");
+            return;
+        }
+
         Cell cell = cellScene.Instantiate<Cell>();
-        cell.Type = cellType;
+        cell.Type = type;
         cell.MapCoords = mapCoords;
         cell.Position = MapToLocal(mapCoords);
-        cell.Init();
 
         Cells[mapCoords.Y, mapCoords.X]?.QueueFree();
         Cells[mapCoords.Y, mapCoords.X] = cell;
         AddChild(cell);
+        cell.Init();
+
+        cell.Selected += level.OnMapCellSelected;
     }
 
-    // @Incomplete: Add boundary checks
-    public void SetItem(Vector2I mapCoords, ItemType itemType = ItemType.NONE, bool visible = true)
+    // WARNING: Does not auto recalculate the matches
+    public void SetItem(Vector2I mapCoords, ItemType type = ItemType.NONE, bool visible = true)
     {
+        if (mapCoords.X < 0 || mapCoords.X >= WIDTH || mapCoords.Y < 0 || mapCoords.Y >= HEIGHT)
+        {
+            GD.PrintErr("[Map]: Tried to set item at invalid coords.");
+            return;
+        }
+
+        if (Cells[mapCoords.Y, mapCoords.X].Item is not null && Cells[mapCoords.Y, mapCoords.X].Item.Type == type) return;
+
+        if (Cells[mapCoords.Y, mapCoords.X].Type == CellType.NONE && type != ItemType.NONE)
+        {
+            GD.PrintErr("[Map]: Tried to set item at cell of type NONE.");
+            return;
+        }
+
         Item item = itemScene.Instantiate<Item>();
         item.Visible = visible;
-        item.Type = itemType;
+        item.Type = type;
         item.Position = MapToLocal(mapCoords);
-        item.Init();
 
         Cells[mapCoords.Y, mapCoords.X].Item?.QueueFree();
         Cells[mapCoords.Y, mapCoords.X].Item = item;
         AddChild(item);
+        item.Init();
     }
+
+    // WARNING: Does not auto recalculate the matches
+    public void SetItem(Cell cell, ItemType type = ItemType.NONE, bool visible = true)
+    {
+        if (cell.Item is not null && cell.Item.Type == type) return;
+
+        if (cell.MapCoords.X < 0 || cell.MapCoords.X >= WIDTH || cell.MapCoords.Y < 0 || cell.MapCoords.Y >= HEIGHT)
+        {
+            GD.PrintErr("[Map]: Tried to set item at invalid coords.");
+            return;
+        }
+
+        Item item = itemScene.Instantiate<Item>();
+        item.Visible = visible;
+        item.Type = type;
+        item.Position = MapToLocal(cell.MapCoords);
+
+        cell.Item?.QueueFree();
+        cell.Item = item;
+        AddChild(item);
+        item.Init();
+    }
+
+    private void LoadGenerators()
+    {
+        foreach (Cell cell in Cells)
+        {
+            if (cell.Type < CellType.GENERATOR_TOP || cell.Type > CellType.GENERATOR_CENTER)
+            {
+                continue;
+            }
+
+            if (cell.Type == CellType.GENERATOR_CENTER)
+            {
+                CenterGenerators.Add(cell);
+                continue;
+            }
+
+            // Assign default values so that the compiler doesn't complain
+            Vector2I direction = new();
+            CellType complementType = CellType.NONE;
+
+            switch (cell.Type)
+            {
+                case CellType.GENERATOR_TOP:
+                    direction = Vector2I.Down;
+                    complementType = CellType.GENERATOR_BOTTOM;
+                    break;
+                case CellType.GENERATOR_BOTTOM:
+                    direction = Vector2I.Up;
+                    complementType = CellType.GENERATOR_TOP;
+                    break;
+                case CellType.GENERATOR_LEFT:
+                    direction = Vector2I.Right;
+                    complementType = CellType.GENERATOR_RIGHT;
+                    break;
+                case CellType.GENERATOR_RIGHT:
+                    direction = Vector2I.Left;
+                    complementType = CellType.GENERATOR_LEFT;
+                    break;
+            }
+
+            Vector2I start = cell.MapCoords;
+            Vector2I tip = cell.MapCoords + direction;
+            while (InBounds(tip) && Cells[tip.Y, tip.X].Type != CellType.NONE && Cells[tip.Y, tip.X].Type != complementType)
+            {
+                tip += direction;
+            }
+
+            bool priority = true;
+            if (InBounds(tip) && (Cells[tip.Y, tip.X].Type == CellType.GENERATOR_TOP || Cells[tip.Y, tip.X].Type == CellType.GENERATOR_LEFT))
+            {
+                priority = false;
+            }
+
+            if (cell.Type == CellType.GENERATOR_TOP || cell.Type == CellType.GENERATOR_BOTTOM)
+            {
+                VerticalVectors.Add(new(start, tip - direction, priority));
+            }
+            else
+            {
+                HorizontalVectors.Add(new(start, tip - direction, priority));
+            }
+        }
+    }
+
+    // NOTE: We calculate the matches just before checking
+    public void CalculateMatches()
+    {
+        for (int y = 0; y < HEIGHT - 2; y++)
+        {
+            for (int x = 0; x < WIDTH - 2; x++)
+            {
+                Matches[y, x] = MatchType.NONE;
+
+                // Cell type NONE => item type NONE
+                if (Cells[y, x].Item.Type == ItemType.NONE) continue;
+
+                if (Cells[y, x].Item.Type == Cells[y, x + 1].Item.Type && Cells[y, x].Item.Type == Cells[y, x + 2].Item.Type)
+                {
+                    Matches[y, x] |= MatchType.RIGHT;
+                }
+                if (Cells[y, x].Item.Type == Cells[y + 1, x].Item.Type && Cells[y, x].Item.Type == Cells[y + 2, x].Item.Type)
+                {
+                    Matches[y, x] |= MatchType.DOWN;
+                }
+            }
+        }
+    }
+}
+
+public readonly struct GeneratorVector : IEnumerable
+{
+    public readonly Vector2I start;
+    public readonly Vector2I end;
+    public readonly Vector2I direction;     // Easier to store explicitely
+    public readonly bool priority;          // When the vector is shared
+
+    // Used for refactoring
+    public enum Type
+    {
+        VERTICAL,
+        HORIZONTAL,
+    }
+
+    public GeneratorVector(Vector2I start, Vector2I end, bool priority = true)
+    {
+        if (!Map.InBounds(start))
+        {
+            GD.PrintErr("[Map]: Tried to create generator vector with invalid starting point.");
+        }
+        if (!Map.InBounds(end))
+        {
+            GD.PrintErr("[Map]: Tried to create generator vector with invalid ending point.");
+        }
+
+        this.start = start;
+        this.end = end;
+        this.direction = (Vector2I)((Vector2)(end - start)).Normalized();
+        this.priority = priority;
+    }
+
+    public IEnumerator<Vector2I> GetEnumerator()
+    {
+        Vector2I current = start;
+        yield return current;
+        while (current != end)
+        {
+            current += direction;
+            yield return current;
+        }
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+
+    // @Unused
+    public GeneratorVector Reversed()
+    {
+        return new(end, start, priority);
+    }
+}
+
+[Flags]
+public enum MatchType
+{
+    NONE = 0,
+    RIGHT = 1 << 0,
+    DOWN = 1 << 1,
 }
