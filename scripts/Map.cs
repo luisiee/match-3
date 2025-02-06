@@ -32,13 +32,23 @@ public partial class Map : Node2D
     // @Incomplete: migrate to function and arrays
     public readonly Dictionary<CellType, Vector2I> CELL_TYPE_TO_ATLAS_COORDS = new()
     {
-        { CellType.NONE,                new Vector2I(0, 0) },
-        { CellType.NORMAL,              new Vector2I(1, 0) },
-        { CellType.GENERATOR_CENTER,    new Vector2I(2, 0) },
-        { CellType.GENERATOR_TOP,       new Vector2I(3, 0) },
-        { CellType.GENERATOR_LEFT,      new Vector2I(4, 0) },
-        { CellType.GENERATOR_BOTTOM,    new Vector2I(5, 0) },
-        { CellType.GENERATOR_RIGHT,     new Vector2I(6, 0) },
+        { CellType.NONE,    new Vector2I(0, 0) },
+        { CellType.NORMAL,  new Vector2I(1, 0) },
+
+        { CellType.GENERATOR_CENTER,        new Vector2I(2, 0) },
+        { CellType.GENERATOR_TOP,           new Vector2I(3, 0) },
+        { CellType.GENERATOR_LEFT,          new Vector2I(4, 0) },
+        { CellType.GENERATOR_BOTTOM,        new Vector2I(5, 0) },
+        { CellType.GENERATOR_RIGHT,         new Vector2I(6, 0) },
+        { CellType.GENERATOR_TOP_RIGHT,     new Vector2I(7, 0) },
+        { CellType.GENERATOR_TOP_LEFT,      new Vector2I(0, 1) },
+        { CellType.GENERATOR_BOTTOM_RIGHT,  new Vector2I(1, 1) },
+        { CellType.GENERATOR_BOTTOM_LEFT,   new Vector2I(2, 1) },
+
+        { CellType.COUNTER_1,   new Vector2I(3, 1) },
+        { CellType.COUNTER_2,   new Vector2I(4, 1) },
+        { CellType.COUNTER_3,   new Vector2I(5, 1) },
+        { CellType.COUNTER_4,   new Vector2I(6, 1) },
     };
 
     public readonly Dictionary<ItemType, Vector2I> ITEM_TYPE_TO_ATLAS_COORDS = new()
@@ -64,6 +74,11 @@ public partial class Map : Node2D
         CellType.GENERATOR_TOP_LEFT,
         CellType.GENERATOR_BOTTOM_LEFT,
         CellType.GENERATOR_BOTTOM_RIGHT,
+
+        CellType.COUNTER_1,
+        CellType.COUNTER_2,
+        CellType.COUNTER_3,
+        CellType.COUNTER_4,
     };
 
     private readonly ItemType[] ITEM_ATLAS_INFO =
@@ -175,7 +190,6 @@ public partial class Map : Node2D
         }
 
         Cell cell = cellScene.Instantiate<Cell>();
-        cell.Type = type;
         cell.MapCoords = mapCoords;
         cell.Position = MapToLocal(mapCoords);
 
@@ -184,6 +198,7 @@ public partial class Map : Node2D
         AddChild(cell);
         cell.Init();
 
+        cell.Type = type;
         cell.Selected += level.OnMapCellSelected;
     }
 
@@ -242,7 +257,7 @@ public partial class Map : Node2D
     {
         foreach (Cell cell in Cells)
         {
-            if ((int)cell.Type < Cell.TYPE_GEN_MIN || (int)cell.Type > Cell.TYPE_GEN_MAX)
+            if ((int)cell.Type < Cell.TYPE_GENERATOR_MIN || (int)cell.Type > Cell.TYPE_GENERATOR_MAX)
             {
                 continue;
             }

@@ -77,7 +77,7 @@ public partial class Level : Node
     private async void Start()
     {
         // @Incomplete: Hardcoded for now
-        Moves = 15;
+        Moves = 20;
         Score = 0;
 
         foreach (Cell cell in map.Cells)
@@ -250,7 +250,7 @@ public partial class Level : Node
     // The animations in the buffer must be played
     private void TechnicalSpawn(Cell cell)
     {
-        if ((int)cell.Type < Cell.TYPE_GEN_MIN || (int)cell.Type > Cell.TYPE_GEN_MAX)
+        if ((int)cell.Type < Cell.TYPE_GENERATOR_MIN || (int)cell.Type > Cell.TYPE_GENERATOR_MAX)
         {
             GD.PushError("[Level]: Tried to spawn item in invalid cell. Mapcoords: ", cell.MapCoords);
             return;
@@ -411,20 +411,49 @@ public partial class Level : Node
                 // await PlayBufferAnimations();
                 // Different scores
                 // Special items
+                // Counter animations
 
                 if ((map.Matches[y, x] & MatchType.RIGHT) == MatchType.RIGHT)
                 {
                     Score += SCORE_INC;
-                    map.SetItem(new Vector2I(x + 0, y), ItemType.NONE);
-                    map.SetItem(new Vector2I(x + 1, y), ItemType.NONE);
-                    map.SetItem(new Vector2I(x + 2, y), ItemType.NONE);
+                    for (int k = 0; k < 3; k++)
+                    {
+                        Cell cell = map.Cells[y, x + k];
+                        Vector2I mapCoords = cell.MapCoords;
+                        if ((int)cell.Type >= Cell.TYPE_COUNTER_MIN && (int)cell.Type <= Cell.TYPE_COUNTER_MAX)
+                        {
+                            if (cell.Type == CellType.COUNTER_1)
+                            {
+                                cell.Type = CellType.NORMAL;
+                            }
+                            else
+                            {
+                                cell.Type--;
+                            }
+                        }
+                        map.SetItem(mapCoords, ItemType.NONE);
+                    }
                 }
                 if ((map.Matches[y, x] & MatchType.DOWN) == MatchType.DOWN)
                 {
                     Score += SCORE_INC;
-                    map.SetItem(new Vector2I(x, y + 0), ItemType.NONE);
-                    map.SetItem(new Vector2I(x, y + 1), ItemType.NONE);
-                    map.SetItem(new Vector2I(x, y + 2), ItemType.NONE);
+                    for (int k = 0; k < 3; k++)
+                    {
+                        Cell cell = map.Cells[y + k, x];
+                        Vector2I mapCoords = cell.MapCoords;
+                        if ((int)cell.Type >= Cell.TYPE_COUNTER_MIN && (int)cell.Type <= Cell.TYPE_COUNTER_MAX)
+                        {
+                            if (cell.Type == CellType.COUNTER_1)
+                            {
+                                cell.Type = CellType.NORMAL;
+                            }
+                            else
+                            {
+                                cell.Type--;
+                            }
+                        }
+                        map.SetItem(mapCoords, ItemType.NONE);
+                    }
                 }
             }
         }
@@ -436,6 +465,7 @@ public partial class Level : Node
         await TryGenerate();
 
         bool isSuccesfulMatch = await TryMatch();
+        bool success = isSuccesfulMatch;
         while (isSuccesfulMatch)
         {
             bool isSuccesfulGenerate = await TryGenerate();
@@ -444,7 +474,7 @@ public partial class Level : Node
             isSuccesfulMatch = await TryMatch(pauseBeforeAnimation: GENERATE_TO_MATCH_PAUSE_TIME);
         }
 
-        return isSuccesfulMatch;
+        return success;
     }
 
     private async Task PlayBufferAnimations()
